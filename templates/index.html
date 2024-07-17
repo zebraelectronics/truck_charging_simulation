@@ -7,24 +7,77 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        form input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        form button:hover {
+            background-color: #218838;
         }
         #result {
-            margin-top: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin: 20px 0;
+            text-align: center;
         }
         table, th, td {
-            border: 1px solid black;
+            border: 1px solid #ddd;
         }
         th, td {
-            padding: 8px;
-            text-align: center;
+            padding: 12px;
+        }
+        th {
+            background-color: #f8f8f8;
         }
         .red-text {
             color: red;
+        }
+        .chart-container {
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
         }
     </style>
 </head>
@@ -65,20 +118,22 @@
                             <thead>
                                 <tr>
                                     <th>Status</th>
-                                    ${Object.keys(result.total_times).map(truck => `<th>${truck}</th>`).join('')}
+                                    ${Object.keys(result.total_times).sort().map(truck => `<th>${truck}</th>`).join('')}
                                 </tr>
                             </thead>
                             <tbody>
                                 ${['Running', 'Charging', 'Waiting', 'Idle'].map(status => `
                                     <tr>
                                         <td>${status}</td>
-                                        ${Object.values(result.total_times).map(counters => `<td class="${status === 'Waiting' && counters[status] > 0 ? 'red-text' : ''}">${(counters[status] / 60).toFixed(2)}</td>`).join('')}
+                                        ${Object.keys(result.total_times).sort().map(truck => `<td class="${status === 'Waiting' && result.total_times[truck][status] > 0 ? 'red-text' : ''}">${(result.total_times[truck][status] / 60).toFixed(2)}</td>`).join('')}
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
                         <h2>Load Profile</h2>
-                        <canvas id="loadProfileChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="loadProfileChart"></canvas>
+                        </div>
                         <div>Total Daily Energy Consumption: ${result.load_profile.reduce((acc, hour) => acc + hour.total_energy, 0).toFixed(2)} kWh</div>
                         <a href="${result.csv_url}">Download Simulation CSV</a><br>
                         <a href="${result.load_profile_url}">Download Load Profile CSV</a><br>
