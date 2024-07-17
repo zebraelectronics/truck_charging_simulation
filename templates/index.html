@@ -48,13 +48,18 @@
         form button:hover {
             background-color: #218838;
         }
-        #result {
+        #result, #loadingMessage {
             max-width: 800px;
             margin: 20px auto;
             padding: 20px;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #loadingMessage {
+            text-align: center;
+            font-size: 18px;
+            color: #333;
         }
         table {
             width: 100%;
@@ -96,6 +101,7 @@
         <input type="number" id="num_guns" name="num_guns"><br>
         <button type="button" onclick="runSimulation()">Run Simulation</button>
     </form>
+    <div id="loadingMessage" style="display:none;">Simulation is running, please wait...</div>
     <div id="result"></div>
     <script>
         function runSimulation() {
@@ -104,6 +110,7 @@
             const data = {};
             formData.forEach((value, key) => (data[key] = value));
             document.getElementById('result').innerHTML = ''; // Clear previous results
+            document.getElementById('loadingMessage').style.display = 'block'; // Show loading message
             fetch('/run_simulation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -111,6 +118,7 @@
             })
             .then(response => response.json())
             .then(result => {
+                document.getElementById('loadingMessage').style.display = 'none'; // Hide loading message
                 if (result.success) {
                     document.getElementById('result').innerHTML = `
                         <h2>Truck Activity Hours</h2>
@@ -118,14 +126,14 @@
                             <thead>
                                 <tr>
                                     <th>Status</th>
-                                    ${Object.keys(result.total_times).sort().map(truck => `<th>${truck}</th>`).join('')}
+                                    ${Object.keys(result.total_times).sort((a, b) => parseInt(a.replace('truck', '').padStart(2, '0')) - parseInt(b.replace('truck', '').padStart(2, '0'))).map(truck => `<th>${truck}</th>`).join('')}
                                 </tr>
                             </thead>
                             <tbody>
                                 ${['Running', 'Charging', 'Waiting', 'Idle'].map(status => `
                                     <tr>
                                         <td>${status}</td>
-                                        ${Object.keys(result.total_times).sort().map(truck => `<td class="${status === 'Waiting' && result.total_times[truck][status] > 0 ? 'red-text' : ''}">${(result.total_times[truck][status] / 60).toFixed(2)}</td>`).join('')}
+                                        ${Object.keys(result.total_times).sort((a, b) => parseInt(a.replace('truck', '').padStart(2, '0')) - parseInt(b.replace('truck', '').padStart(2, '0'))).map(truck => `<td class="${status === 'Waiting' && result.total_times[truck][status] > 0 ? 'red-text' : ''}">${(result.total_times[truck][status] / 60).toFixed(2)}</td>`).join('')}
                                     </tr>
                                 `).join('')}
                             </tbody>
